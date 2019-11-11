@@ -208,6 +208,35 @@ def Index(bits: int, max_bits: int = None):
     return Index
 
 
+@functools.lru_cache(maxsize=None)
+def Temperature(resolution: float):
+    """
+    Returns a class holding a signed integer multiplied by resolution
+    """
+    class Temperature(float):
+        @classmethod
+        def bits(cls):
+            return 8
+
+        @classmethod
+        def from_int(cls, data: int):
+            if data > 127:
+                data = (256-data) * (-1)
+            return cls(data * resolution)
+
+        def to_int(self):
+            return self
+
+        def __new__(cls, number):
+            if number > 63.5:
+                raise ValueError("Max 63.5c")
+            if number < -63.5:
+                raise ValueError("Min -63.5c")
+            return super().__new__(cls, number)
+
+    return Temperature
+
+
 class DisableInhibitForced(Enum(8)):
     Normal = 0
     Inhibited = 1
